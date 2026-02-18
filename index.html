@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EIT Calculator Pro - Modern Dashboard</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Sarabun', sans-serif; }
+        .font-inter { font-family: 'Inter', sans-serif; }
+        
+        /* Transition & Animations */
+        .tab-content { display: none; opacity: 0; transform: translateY(10px); transition: all 0.3s ease; }
+        .tab-content.active { display: block; opacity: 1; transform: translateY(0); }
+        
+        /* Form Elements */
+        select, input { transition: all 0.2s; }
+        select:focus, input:focus { transform: translateY(-1px); }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#10b981', // Emerald 500
+                        primaryDark: '#059669', // Emerald 600
+                        dark: '#0f172a', // Slate 900
+                        surface: '#ffffff',
+                        background: '#f8fafc', // Slate 50
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-slate-700 h-screen flex overflow-hidden">
+
+    <!-- SIDEBAR NAVIGATION (Desktop) -->
+    <aside class="w-72 bg-dark text-white flex-col hidden md:flex shadow-xl z-20">
+        <!-- Brand -->
+        <div class="p-6 border-b border-slate-800 flex items-center gap-3">
+            <div class="bg-primary p-2 rounded-lg text-white shadow-lg shadow-primary/20">
+                <i data-lucide="zap" class="h-6 w-6"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold font-inter tracking-tight">EIT Calculator</h1>
+                <p class="text-[10px] text-slate-400 uppercase tracking-wider">Engineering Tools</p>
+            </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+            <p class="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-2">Tools Menu</p>
+            
+            <button onclick="switchTab('conduit')" id="nav-conduit" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 bg-slate-800 text-white shadow-inner border-l-4 border-primary">
+                <i data-lucide="cable" class="h-5 w-5 text-primary"></i>
+                <span>คำนวณขนาดท่อ</span>
+            </button>
+            
+            <button onclick="switchTab('cable')" id="nav-cable" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-slate-800/50 text-slate-400 hover:text-white border-l-4 border-transparent">
+                <i data-lucide="calculator" class="h-5 w-5"></i>
+                <span>คำนวณขนาดสาย</span>
+            </button>
+            
+            <button onclick="switchTab('capacity')" id="nav-capacity" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-slate-800/50 text-slate-400 hover:text-white border-l-4 border-transparent">
+                <i data-lucide="layers" class="h-5 w-5"></i>
+                <span>หาจำนวนสาย (Capacity)</span>
+            </button>
+        </nav>
+
+        <!-- Footer Info -->
+        <div class="p-4 bg-slate-950/50 text-xs text-slate-500 border-t border-slate-800">
+            <div class="flex items-center gap-2 mb-1">
+                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <span>Version 3.0 Pro</span>
+            </div>
+            <p>มาตรฐาน มอก. / วสท.</p>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+        
+        <!-- Mobile Header -->
+        <header class="md:hidden bg-dark text-white p-4 flex justify-between items-center shadow-md z-30">
+            <div class="flex items-center gap-2">
+                <i data-lucide="zap" class="h-5 w-5 text-primary"></i>
+                <span class="font-bold">EIT Pro</span>
+            </div>
+            <button onclick="document.getElementById('mobile-menu').classList.toggle('hidden')" class="p-2 text-slate-300">
+                <i data-lucide="menu" class="h-6 w-6"></i>
+            </button>
+        </header>
+        
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobile-menu" class="hidden md:hidden bg-slate-800 text-white absolute top-14 left-0 w-full z-40 border-b border-slate-700 shadow-xl">
+             <button onclick="switchTab('conduit'); document.getElementById('mobile-menu').classList.add('hidden')" class="block w-full text-left px-6 py-3 border-b border-slate-700 hover:bg-slate-700">คำนวณขนาดท่อ</button>
+             <button onclick="switchTab('cable'); document.getElementById('mobile-menu').classList.add('hidden')" class="block w-full text-left px-6 py-3 border-b border-slate-700 hover:bg-slate-700">คำนวณขนาดสาย</button>
+             <button onclick="switchTab('capacity'); document.getElementById('mobile-menu').classList.add('hidden')" class="block w-full text-left px-6 py-3 hover:bg-slate-700">หาจำนวนสาย</button>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-4 md:p-8 bg-background">
+            
+            <!-- Header Title Area -->
+            <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 id="page-title" class="text-2xl font-bold text-dark font-inter">Conduit Sizing</h2>
+                    <p id="page-desc" class="text-slate-500 text-sm mt-1">ระบบคำนวณขนาดท่อร้อยสายไฟอัตโนมัติ</p>
+                </div>
+                <div class="flex gap-2">
+                    <button class="p-2 bg-white border border-slate-200 rounded-lg text-slate-500 hover:text-primary hover:border-primary transition shadow-sm" title="Print/Export">
+                        <i data-lucide="printer" class="h-5 w-5"></i>
+                    </button>
+                    <button class="p-2 bg-white border border-slate-200 rounded-lg text-slate-500 hover:text-primary hover:border-primary transition shadow-sm" title="Settings">
+                        <i data-lucide="settings-2" class="h-5 w-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAB 1: CONDUIT CALCULATION -->
+            <div id="tab-conduit" class="tab-content active max-w-6xl mx-auto">
+                <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+                    
+                    <!-- Left: Input Panel -->
+                    <div class="xl:col-span-7 space-y-6">
+                        <div class="bg-surface rounded-2xl shadow-sm border border-slate-200/60 p-6 relative overflow-hidden group">
+                            <div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+                            <h3 class="text-lg font-bold text-dark mb-6 flex items-center gap-2">
+                                <span class="bg-primary/10 p-2 rounded-lg text-primary"><i data-lucide="plus" class="h-5 w-5"></i></span>
+                                เพิ่มรายการสายไฟ
+                            </h3>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
+                                <div class="col-span-2 sm:col-span-1">
+                                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">ชนิดสายไฟ</label>
+                                    <select id="wireType" onchange="updateWireSizes()" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none cursor-pointer"></select>
+                                </div>
+                                <div class="col-span-2 sm:col-span-1">
+                                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">ขนาด (sq.mm.)</label>
+                                    <select id="wireSize" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none cursor-pointer"></select>
+                                </div>
+                                <div class="col-span-2">
+                                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">จำนวน (เส้น)</label>
+                                    <div class="flex gap-2">
+                                        <input type="number" id="wireQty" value="1" min="1" class="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none">
+                                        <button onclick="addWire()" class="px-6 py-3 bg-primary hover:bg-primaryDark text-white font-medium rounded-xl shadow-lg shadow-primary/30 transition-all flex items-center gap-2">
+                                            เพิ่ม <i data-lucide="arrow-right" class="h-4 w-4"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Data Table -->
+                        <div class="bg-surface rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col min-h-[300px]">
+                            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                                <h4 class="font-bold text-slate-700 flex items-center gap-2">
+                                    <i data-lucide="list" class="h-4 w-4 text-slate-400"></i> รายการที่เลือก
+                                </h4>
+                                <button onclick="clearWireList()" class="text-xs text-red-500 hover:text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors font-medium">ล้างทั้งหมด</button>
+                            </div>
+                            <div class="overflow-x-auto flex-1">
+                                <table class="w-full text-sm text-left">
+                                    <thead class="bg-white text-slate-400 text-xs uppercase tracking-wider border-b border-slate-100">
+                                        <tr>
+                                            <th class="px-6 py-4 font-semibold">ชนิด</th>
+                                            <th class="px-6 py-4 font-semibold">ขนาด</th>
+                                            <th class="px-6 py-4 font-semibold text-center">จำนวน</th>
+                                            <th class="px-6 py-4 font-semibold text-right">พื้นที่รวม</th>
+                                            <th class="px-6 py-4 text-center"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="wireTableBody" class="divide-y divide-slate-50"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Results Panel -->
+                    <div class="xl:col-span-5 space-y-6">
+                        <!-- Main Result Card -->
+                        <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-2xl p-8 text-white relative overflow-hidden group">
+                            <div class="absolute -right-10 -top-10 w-40 h-40 bg-primary/20 rounded-full blur-3xl group-hover:bg-primary/30 transition-all duration-700"></div>
+                            
+                            <h3 class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Recommended Size</h3>
+                            <div class="flex items-baseline gap-3 mb-6 relative z-10">
+                                <span id="resConduitSize" class="text-6xl font-bold font-inter text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-300">--</span>
+                                <span id="resConduitType" class="text-primary text-sm font-medium bg-primary/10 px-2 py-1 rounded"></span>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-6 pt-6 border-t border-white/10 relative z-10">
+                                <div>
+                                    <span class="block text-slate-400 text-[10px] uppercase mb-1">Total Area</span>
+                                    <span class="text-xl font-semibold"><span id="resTotalArea">0.00</span> <span class="text-xs text-slate-500">mm²</span></span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="block text-slate-400 text-[10px] uppercase mb-1">Utilization</span>
+                                    <span id="resUsedPercent" class="text-xl font-semibold text-emerald-400">0%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Info/Chart Widget -->
+                        <div class="bg-surface rounded-2xl shadow-sm border border-slate-200/60 p-6 flex items-center justify-between">
+                            <div>
+                                <h4 class="text-sm font-bold text-slate-700 mb-1">Fill Factor Limit</h4>
+                                <p class="text-xs text-slate-500 max-w-[150px]">มาตรฐานกำหนดให้ใช้พื้นที่ไม่เกิน <span id="resMaxFill" class="font-bold text-dark">40</span>% ของท่อ</p>
+                            </div>
+                            <div class="relative w-24 h-24">
+                                <svg class="w-full h-full transform -rotate-90">
+                                    <circle cx="50%" cy="50%" r="40" fill="none" stroke="#f1f5f9" stroke-width="8"></circle>
+                                    <circle id="chartCircle" cx="50%" cy="50%" r="40" fill="none" stroke="#10b981" stroke-width="8" stroke-dasharray="0 251" stroke-linecap="round" class="transition-all duration-1000 ease-out"></circle>
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center text-xs font-bold text-slate-600">
+                                    <span id="chartPercent">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: CABLE SIZING -->
+            <div id="tab-cable" class="tab-content max-w-5xl mx-auto">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Input -->
+                    <div class="bg-surface rounded-2xl shadow-sm border border-slate-200/60 p-8 h-fit">
+                        <div class="flex items-center gap-3 mb-8">
+                            <div class="bg-blue-100 p-2 rounded-lg text-blue-600">
+                                <i data-lucide="settings-2" class="h-6 w-6"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-dark">Parameters</h3>
+                        </div>
+                        
+                        <div class="space-y-6">
+                            <!-- Input Type Selector -->
+                            <div class="bg-slate-50 p-1 rounded-xl flex">
+                                <label class="flex-1 cursor-pointer">
+                                    <input type="radio" name="inputType" value="amps" checked onchange="updateCableLabel()" class="peer hidden">
+                                    <div class="py-2 text-center text-sm font-medium text-slate-500 rounded-lg peer-checked:bg-white peer-checked:text-blue-600 peer-checked:shadow-sm transition-all">Amps</div>
+                                </label>
+                                <label class="flex-1 cursor-pointer">
+                                    <input type="radio" name="inputType" value="kw" onchange="updateCableLabel()" class="peer hidden">
+                                    <div class="py-2 text-center text-sm font-medium text-slate-500 rounded-lg peer-checked:bg-white peer-checked:text-blue-600 peer-checked:shadow-sm transition-all">kW</div>
+                                </label>
+                                <label class="flex-1 cursor-pointer">
+                                    <input type="radio" name="inputType" value="va" onchange="updateCableLabel()" class="peer hidden">
+                                    <div class="py-2 text-center text-sm font-medium text-slate-500 rounded-lg peer-checked:bg-white peer-checked:text-blue-600 peer-checked:shadow-sm transition-all">VA</div>
+                                </label>
+                            </div>
+
+                            <div>
+                                <label id="inputLabel" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Current (Amps)</label>
+                                <div class="relative">
+                                    <input type="number" id="cableInputVal" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-lg font-medium text-dark focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none pl-12" placeholder="0">
+                                    <div class="absolute left-4 top-3.5 text-slate-400"><i data-lucide="activity" class="h-5 w-5"></i></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">System</label>
+                                <select id="cableSystem" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none">
+                                    <option value="1">Single Phase (220-230V)</option>
+                                    <option value="3" selected>Three Phase (380-400V)</option>
+                                </select>
+                            </div>
+
+                            <button onclick="calculateCable()" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all flex justify-center items-center gap-2 mt-4">
+                                <i data-lucide="calculator" class="h-5 w-5"></i> Calculate
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Results -->
+                    <div class="space-y-4">
+                        <!-- Breaker Card -->
+                        <div class="bg-surface p-6 rounded-2xl shadow-sm border border-slate-200/60 relative overflow-hidden">
+                            <div class="absolute right-0 top-0 h-full w-1 bg-amber-400"></div>
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Breaker (AT)</p>
+                                    <h4 id="resBreaker" class="text-3xl font-bold text-dark font-inter">-- AT</h4>
+                                    <p id="resBreakerDesc" class="text-xs text-slate-400 mt-2 bg-slate-50 inline-block px-2 py-1 rounded">Waiting for input...</p>
+                                </div>
+                                <div class="p-3 bg-amber-50 rounded-xl text-amber-500">
+                                    <i data-lucide="toggle-right" class="h-8 w-8"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cable Card -->
+                        <div class="bg-surface p-6 rounded-2xl shadow-sm border border-slate-200/60 relative overflow-hidden">
+                            <div class="absolute right-0 top-0 h-full w-1 bg-dark"></div>
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Main Cable (IEC 01)</p>
+                                    <h4 id="resCable" class="text-3xl font-bold text-dark font-inter">-- sq.mm.</h4>
+                                    <p class="text-xs text-slate-400 mt-2">Walking in conduit (Air)</p>
+                                </div>
+                                <div class="p-3 bg-slate-100 rounded-xl text-slate-600">
+                                    <i data-lucide="git-fork" class="h-8 w-8"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ground Card -->
+                        <div class="bg-surface p-6 rounded-2xl shadow-sm border border-slate-200/60 relative overflow-hidden">
+                            <div class="absolute right-0 top-0 h-full w-1 bg-emerald-500"></div>
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Ground Wire</p>
+                                    <h4 id="resGround" class="text-3xl font-bold text-dark font-inter">-- sq.mm.</h4>
+                                    <p class="text-xs text-slate-400 mt-2">THW / Green-Yellow</p>
+                                </div>
+                                <div class="p-3 bg-emerald-50 rounded-xl text-emerald-500">
+                                    <i data-lucide="globe" class="h-8 w-8"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: CAPACITY -->
+            <div id="tab-capacity" class="tab-content max-w-6xl mx-auto">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Config -->
+                    <div class="bg-surface rounded-2xl shadow-sm border border-slate-200/60 p-8">
+                        <h3 class="text-lg font-bold text-dark mb-6 flex items-center gap-2">
+                            <span class="bg-indigo-100 p-2 rounded-lg text-indigo-600"><i data-lucide="sliders" class="h-5 w-5"></i></span>
+                            Configure Setup
+                        </h3>
+                        
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Conduit Size</label>
+                                <select id="capConduit" onchange="calcCapacity()" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"></select>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Wire Type</label>
+                                    <select id="capWireType" onchange="updateCapWireSizes()" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"></select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Wire Size</label>
+                                    <select id="capWireSize" onchange="calcCapacity()" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"></select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Result -->
+                    <div class="space-y-6">
+                        <div class="bg-gradient-to-br from-indigo-600 to-indigo-800 rounded-2xl shadow-xl p-8 text-white relative overflow-hidden flex flex-col items-center justify-center min-h-[240px]">
+                            <div class="absolute left-0 bottom-0 opacity-10"><i data-lucide="layers" class="w-48 h-48"></i></div>
+                            
+                            <span class="bg-white/10 px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm mb-4">Max Capacity</span>
+                            <div class="flex items-baseline gap-2">
+                                <span id="capMaxResult" class="text-8xl font-bold font-inter tracking-tighter">0</span>
+                                <span class="text-xl text-indigo-200">เส้น</span>
+                            </div>
+                            <p id="capResultDesc" class="text-sm text-indigo-200 mt-2 opacity-80 font-light">--</p>
+                        </div>
+
+                        <!-- Mini Table -->
+                        <div class="bg-surface rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col max-h-[300px]">
+                             <div class="p-4 bg-slate-50 border-b border-slate-100 font-bold text-xs uppercase text-slate-500 tracking-wider">
+                                 Capacity Table Breakdown
+                             </div>
+                             <div class="overflow-y-auto flex-1 p-2">
+                                <table class="w-full text-sm">
+                                    <tbody id="capTableBody"></tbody>
+                                </table>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- LOGIC SCRIPT -->
+    <script>
+        // --- CONSTANTS & DATA ---
+        const WIRE_AREA_DATA = {
+            'IEC 01 (THW)': { '1.5': 8.55, '2.5': 11.34, '4': 15.20, '6': 19.63, '10': 29.22, '16': 40.71, '25': 60.82, '35': 78.54, '50': 107.5, '70': 143.1, '95': 188.7, '120': 237.8, '150': 298.6, '185': 363.0, '240': 475.3, '300': 590.0, '400': 760.0 },
+            'NYY (1 Core)': { '10': 132.7, '16': 153.9, '25': 191.1, '35': 226.9, '50': 283.5, '70': 346.4, '95': 452.4, '120': 530.9, '150': 615.8, '185': 706.9, '240': 855.3, '300': 1050.0, '400': 1360.0 },
+            'CV 1 Core': { '2.5': 38.5, '4': 44.2, '6': 50.3, '10': 63.6, '16': 78.5, '25': 113.1, '35': 132.7, '50': 154.0, '70': 201.1, '95': 254.5, '120': 314.2 },
+            'CV 2 Core': { '2.5': 132.7, '4': 153.9, '6': 176.7, '10': 254.5, '16': 314.2, '25': 452.4, '35': 530.9, '50': 660.5 },
+            'CV 3 Core': { '2.5': 143.1, '4': 165.1, '6': 191.1, '10': 271.7, '16': 330.1, '25': 490.9, '35': 572.6, '50': 706.9, '70': 962.1, '95': 1256.6 },
+            'CV 4 Core': { '2.5': 153.9, '4': 188.7, '6': 213.8, '10': 314.2, '16': 415.5, '25': 615.8, '35': 754.7, '50': 962.1, '70': 1320.2, '95': 1661.9 }
+        };
+
+        const AMPACITY_DATA = {
+            '1.5': { thw: 11, breaker: 10 }, '2.5': { thw: 15, breaker: 16 }, '4': { thw: 21, breaker: 20 },
+            '6': { thw: 28, breaker: 32 }, '10': { thw: 38, breaker: 40 }, '16': { thw: 50, breaker: 50 },
+            '25': { thw: 67, breaker: 63 }, '35': { thw: 82, breaker: 80 }, '50': { thw: 101, breaker: 100 },
+            '70': { thw: 129, breaker: 125 }, '95': { thw: 158, breaker: 160 }, '120': { thw: 184, breaker: 175 },
+            '150': { thw: 212, breaker: 200 }, '185': { thw: 245, breaker: 250 }, '240': { thw: 292, breaker: 300 },
+            '300': { thw: 344, breaker: 350 }, '400': { thw: 409, breaker: 400 }
+        };
+
+        const CONDUIT_SIZES = [
+            { size: '1/2"', label: '15 mm', area: 195, type: 'EMT' }, { size: '3/4"', label: '20 mm', area: 349, type: 'EMT' },
+            { size: '1"', label: '25 mm', area: 598, type: 'EMT' }, { size: '1 1/4"', label: '32 mm', area: 1029, type: 'EMT' },
+            { size: '1 1/2"', label: '40 mm', area: 1396, type: 'EMT' }, { size: '2"', label: '50 mm', area: 2269, type: 'EMT' },
+            { size: '2 1/2"', label: '65 mm', area: 3500, type: 'IMC' }, { size: '3"', label: '80 mm', area: 5350, type: 'IMC' },
+            { size: '3 1/2"', label: '90 mm', area: 7200, type: 'IMC' }, { size: '4"', label: '100 mm', area: 9300, type: 'IMC' }
+        ];
+
+        const STANDARD_BREAKERS = [10, 16, 20, 32, 40, 50, 63, 70, 80, 100, 125, 160, 175, 200, 225, 250, 300, 320, 350, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3200];
+
+        let wireList = [];
+
+        window.onload = function() {
+            lucide.createIcons();
+            initSelects();
+            renderWireList();
+            calcCapacity();
+        };
+
+        function initSelects() {
+            const types = Object.keys(WIRE_AREA_DATA);
+            const wSel = document.getElementById('wireType');
+            const cWSel = document.getElementById('capWireType');
+            
+            types.forEach(t => {
+                wSel.add(new Option(t, t));
+                cWSel.add(new Option(t, t));
+            });
+            
+            const cCSel = document.getElementById('capConduit');
+            CONDUIT_SIZES.forEach(c => cCSel.add(new Option(`${c.label} (${c.size})`, c.size)));
+
+            updateWireSizes();
+            updateCapWireSizes();
+        }
+
+        // --- NAVIGATION ---
+        function switchTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+
+            // Update Sidebar State
+            const navIds = ['conduit', 'cable', 'capacity'];
+            navIds.forEach(id => {
+                const btn = document.getElementById(`nav-${id}`);
+                const isActive = id === tabId;
+                
+                // Reset classes
+                btn.className = isActive 
+                    ? "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 bg-slate-800 text-white shadow-inner border-l-4 border-primary"
+                    : "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-slate-800/50 text-slate-400 hover:text-white border-l-4 border-transparent";
+                    
+                // Update Icon Color
+                // Lucide replaces <i> with <svg>, so we try to find svg first, then fall back to i
+                const icon = btn.querySelector('svg') || btn.querySelector('i');
+                if(icon) {
+                    if(isActive) icon.classList.add('text-primary');
+                    else icon.classList.remove('text-primary');
+                }
+            });
+
+            // Update Header Title
+            const titles = {
+                'conduit': { t: 'Conduit Sizing', d: 'ระบบคำนวณขนาดท่อร้อยสายไฟ' },
+                'cable': { t: 'Cable Sizing', d: 'คำนวณขนาดสายไฟและเบรกเกอร์' },
+                'capacity': { t: 'Capacity Check', d: 'ตรวจสอบความจุสายในท่อ (Fill Factor)' }
+            };
+            document.getElementById('page-title').innerText = titles[tabId].t;
+            document.getElementById('page-desc').innerText = titles[tabId].d;
+        }
+
+        // --- CONDUIT LOGIC ---
+        function updateWireSizes() {
+            const type = document.getElementById('wireType').value;
+            const sizeSel = document.getElementById('wireSize');
+            sizeSel.innerHTML = '';
+            Object.keys(WIRE_AREA_DATA[type]).forEach(s => sizeSel.add(new Option(s, s)));
+        }
+
+        function addWire() {
+            const type = document.getElementById('wireType').value;
+            const size = document.getElementById('wireSize').value;
+            const qty = parseInt(document.getElementById('wireQty').value) || 1;
+            const area = WIRE_AREA_DATA[type][size] * qty;
+
+            wireList.push({ id: Date.now(), type, size, qty, area });
+            renderWireList();
+            calcConduit();
+        }
+
+        function clearWireList() { wireList = []; renderWireList(); calcConduit(); }
+        function removeWire(id) { wireList = wireList.filter(w => w.id !== id); renderWireList(); calcConduit(); }
+
+        function renderWireList() {
+            const tbody = document.getElementById('wireTableBody');
+            tbody.innerHTML = '';
+            if(wireList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-slate-400 italic">No items added</td></tr>`;
+                return;
+            }
+            wireList.forEach(w => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4 font-medium text-slate-700">${w.type}</td>
+                        <td class="px-6 py-4 text-slate-500">${w.size}</td>
+                        <td class="px-6 py-4 text-center text-slate-500 font-mono bg-slate-50/50">${w.qty}</td>
+                        <td class="px-6 py-4 text-right text-slate-600 font-mono">${w.area.toFixed(2)}</td>
+                        <td class="px-6 py-4 text-center">
+                            <button onclick="removeWire(${w.id})" class="text-slate-300 hover:text-red-500 transition-colors"><i data-lucide="x-circle" class="h-5 w-5"></i></button>
+                        </td>
+                    </tr>`;
+            });
+            lucide.createIcons();
+        }
+
+        function calcConduit() {
+            const totalQty = wireList.reduce((s, w) => s + w.qty, 0);
+            const totalArea = wireList.reduce((s, w) => s + w.area, 0);
+            
+            let limit = 40;
+            if(totalQty === 1) limit = 53;
+            else if(totalQty === 2) limit = 31;
+            
+            document.getElementById('resMaxFill').innerText = limit;
+            document.getElementById('resTotalArea').innerText = totalArea.toFixed(2);
+            
+            if(totalArea > 0) {
+                const found = CONDUIT_SIZES.find(c => (c.area * (limit/100)) >= totalArea);
+                if(found) {
+                    document.getElementById('resConduitSize').innerText = found.size;
+                    document.getElementById('resConduitType').innerText = found.type;
+                    const used = (totalArea / found.area) * 100;
+                    document.getElementById('resUsedPercent').innerText = used.toFixed(1) + '%';
+                    
+                    // Chart
+                    const dash = (Math.min(used, 100) / 100) * 251;
+                    const circle = document.getElementById('chartCircle');
+                    circle.setAttribute('stroke-dasharray', `${dash} 251`);
+                    circle.setAttribute('stroke', used > limit ? '#ef4444' : '#10b981');
+                    document.getElementById('chartPercent').innerText = Math.round(used) + '%';
+                } else {
+                    document.getElementById('resConduitSize').innerText = '> 4"';
+                    document.getElementById('resConduitType').innerText = 'Way';
+                    document.getElementById('resUsedPercent').innerText = '100%';
+                }
+            } else {
+                document.getElementById('resConduitSize').innerText = '--';
+                document.getElementById('resConduitType').innerText = '';
+                document.getElementById('resUsedPercent').innerText = '0%';
+                document.getElementById('chartCircle').setAttribute('stroke-dasharray', `0 251`);
+                document.getElementById('chartPercent').innerText = '0%';
+            }
+        }
+
+        // --- CABLE LOGIC ---
+        function updateCableLabel() {
+            const type = document.querySelector('input[name="inputType"]:checked').value;
+            const labels = { 'amps': 'Current (Amps)', 'kw': 'Power (kW)', 'va': 'Apparent (VA)' };
+            document.getElementById('inputLabel').innerText = labels[type];
+        }
+
+        function calculateCable() {
+            const val = parseFloat(document.getElementById('cableInputVal').value);
+            if(!val) return;
+            
+            const type = document.querySelector('input[name="inputType"]:checked').value;
+            const sys = document.getElementById('cableSystem').value;
+            
+            let amps = val;
+            if(type === 'kw') amps = sys === '1' ? (val*1000)/230 : (val*1000)/(1.732*400);
+            if(type === 'va') amps = sys === '1' ? val/230 : val/(1.732*400);
+            
+            const design = amps * 1.25;
+            let breaker = STANDARD_BREAKERS.find(b => b >= design) || '> 3200';
+            
+            let cable = '> 400';
+            const sizes = Object.keys(AMPACITY_DATA).sort((a,b)=>parseFloat(a)-parseFloat(b));
+            if(typeof breaker === 'number') {
+                for(let s of sizes) {
+                    if(AMPACITY_DATA[s].thw >= breaker) { cable = s; break; }
+                }
+            }
+
+            document.getElementById('resBreaker').innerText = `${breaker} AT`;
+            document.getElementById('resBreakerDesc').innerText = `Load: ${amps.toFixed(1)}A | Design: ${design.toFixed(1)}A`;
+            document.getElementById('resCable').innerText = `${cable} sq.mm.`;
+            
+            const gSize = parseFloat(cable);
+            let gnd = '--';
+            if(!isNaN(gSize)) {
+                if(gSize<=16) gnd = gSize; else if(gSize<=35) gnd = 16; else if(gSize<=50) gnd = 25;
+                else if(gSize<=70) gnd = 35; else if(gSize<=95) gnd = 50; else if(gSize<=185) gnd = 95;
+                else if(gSize<=300) gnd = 150; else gnd = 240; // Approx
+            }
+            document.getElementById('resGround').innerText = `${gnd} sq.mm.`;
+        }
+
+        // --- CAPACITY LOGIC ---
+        function updateCapWireSizes() {
+            const type = document.getElementById('capWireType').value;
+            const sizeSel = document.getElementById('capWireSize');
+            sizeSel.innerHTML = '';
+            Object.keys(WIRE_AREA_DATA[type]).forEach(s => sizeSel.add(new Option(s, s)));
+            calcCapacity();
+        }
+
+        function calcCapacity() {
+            const cSize = document.getElementById('capConduit').value;
+            const wType = document.getElementById('capWireType').value;
+            const wFocus = document.getElementById('capWireSize').value;
+            
+            const conduit = CONDUIT_SIZES.find(c => c.size === cSize);
+            const wData = WIRE_AREA_DATA[wType];
+            const sizes = Object.keys(wData).sort((a,b)=>parseFloat(a)-parseFloat(b));
+            
+            const tbody = document.getElementById('capTableBody');
+            tbody.innerHTML = '';
+            
+            let maxFocus = 0;
+            
+            sizes.forEach(s => {
+                const area = wData[s];
+                let max = 0;
+                if(area <= conduit.area * 0.53) max = 1;
+                if(2 * area <= conduit.area * 0.31) max = 2;
+                const m40 = Math.floor((conduit.area * 0.40) / area);
+                if(m40 > 2) max = m40;
+                
+                if(s === wFocus) maxFocus = max;
+                
+                tbody.innerHTML += `
+                    <tr class="${s === wFocus ? 'bg-indigo-50' : 'border-b border-slate-50'}">
+                        <td class="px-4 py-2 text-slate-600">${s} sq.mm.</td>
+                        <td class="px-4 py-2 text-right font-bold ${s === wFocus ? 'text-indigo-600' : 'text-slate-800'}">${max}</td>
+                    </tr>
+                `;
+            });
+            
+            document.getElementById('capMaxResult').innerText = maxFocus;
+            document.getElementById('capResultDesc').innerText = `${wFocus} sq.mm. inside ${conduit.label} conduit`;
+        }
+    </script>
+</body>
+</html>
